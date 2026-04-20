@@ -19,30 +19,38 @@ It is designed to help inspect and test prompt components before sending the fin
 - Assembles those sections into a final structured prompt preview
 - Supports simple file-based RAG for `txt`, `md`, `pdf`, `docx`, `json`, and `csv`
 - Calls a real model API from the backend
+- **NEW**: Individual endpoints for testing each prompt component separately
 - Handles common empty states and failures with visible error messages
 
-## Project Structure
+## API Endpoints
 
-```text
-backend/
-  app/
-    config.py
-    main.py
-    prompting.py
-    rag.py
-    schemas.py
-  requirements.txt
-  .env.example
+The backend provides the following endpoints:
 
-frontend/
-  src/
-    api.js
-    App.jsx
-    main.jsx
-    styles.css
-  index.html
-  package.json
-  vite.config.js
+### Core Endpoints
+- `GET /health` - Health check
+- `GET /documents` - List uploaded documents
+- `POST /upload` - Upload a document for RAG
+- `POST /retrieve` - Retrieve relevant context from uploaded documents
+- `POST /assemble` - Assemble prompt sections into a formatted prompt
+- `POST /generate` - Generate response using all prompt sections
+
+### Individual Section Testing Endpoints
+- `POST /generate/system-instructions` - Test system instructions only
+- `POST /generate/user-input` - Test user input only
+- `POST /generate/retrieved-knowledge` - Test retrieved knowledge only
+- `POST /generate/state-and-memory` - Test state & memory only
+
+### External/RAG Endpoints
+- `POST /external/rag-chunks` - Retrieve RAG chunks (public)
+- `POST /external/rag-response` - Generate response with RAG (public)
+
+Each individual section endpoint accepts:
+```json
+{
+  "content": "The content to test",
+  "model": "optional-model-name",
+  "temperature": 0.2
+}
 ```
 
 ## Backend Setup
@@ -86,13 +94,14 @@ If needed, set a custom backend URL:
 set VITE_API_BASE_URL=http://localhost:8000
 ```
 
-## Simple RAG Behavior
+## Frontend Features
 
-- Uploaded files are parsed on the backend
-- Extracted text is chunked into overlapping text slices
-- Retrieval uses a lightweight token-overlap search
-- Retrieved chunks are shown in the UI and copied into the `Retrieved Knowledge` field
-- The user can choose whether to include retrieved knowledge in the final prompt
+- **Separate Section Editing**: Edit each prompt component in its own textarea
+- **Test Individual Sections**: Use "Test Section" buttons to generate responses using only system instructions, user input, retrieved knowledge, or state & memory
+- **Full Prompt Assembly**: Combine all sections and preview the complete prompt
+- **RAG Integration**: Upload documents and retrieve relevant context
+- **Model Response Testing**: Send prompts to configured model API
+- **Error Handling**: Clear error messages for failed operations
 
 ## Reliability Notes
 

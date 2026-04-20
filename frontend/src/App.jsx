@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import {
-  assemblePrompt,
-  fetchDocuments,
-  generateResponse,
-  retrieveContext,
-  uploadFile,
+    assemblePrompt,
+    fetchDocuments,
+    generateResponse,
+    generateRetrievedKnowledge,
+    generateStateAndMemory,
+    generateSystemInstructions,
 } from './api';
 
 const sectionConfig = [
@@ -143,6 +144,61 @@ export default function App() {
     }
   }
 
+  async function handleGenerateSection(sectionKey, sectionLabel) {
+    const content = sections[sectionKey].trim();
+    if (!content) {
+      setErrorMessage(`Please provide content for ${sectionLabel} before generating.`);
+      return;
+    }
+
+    setIsGenerating(true);
+    setErrorMessage('');
+    setStatusMessage(`Generating response for ${sectionLabel}...`);
+    try {
+      let data;
+      switch (sectionKey) {
+        case 'system_instructions':
+          data = await generateSystemInstructions({
+            content,
+            model: modelName.trim() || null,
+            temperature: Number(temperature),
+          });
+          break;
+        case 'user_input':
+          data = await generateUserInput({
+            content,
+            model: modelName.trim() || null,
+            temperature: Number(temperature),
+          });
+          break;
+        case 'retrieved_knowledge':
+          data = await generateRetrievedKnowledge({
+            content,
+            model: modelName.trim() || null,
+            temperature: Number(temperature),
+          });
+          break;
+        case 'state_and_memory':
+          data = await generateStateAndMemory({
+            content,
+            model: modelName.trim() || null,
+            temperature: Number(temperature),
+          });
+          break;
+        default:
+          throw new Error('Unknown section');
+      }
+      setPromptPreview(data.prompt);
+      setModelResponse(data.output_text);
+      setStatusMessage(`Response generated for ${sectionLabel} with ${data.model_used}.`);
+    } catch (error) {
+      setErrorMessage(error.message);
+      setStatusMessage('Model request failed.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
   async function handleUpload(event) {
     const [file] = event.target.files || [];
     if (!file) {
@@ -212,15 +268,28 @@ export default function App() {
           </div>
 
           {sectionConfig.map((section) => (
-            <label key={section.key} className="field-group">
-              <span>{section.label}</span>
+            <div key={section.key} className="field-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{section.label}</span>
+                {['system_instructions', 'user_input', 'retrieved_knowledge', 'state_and_memory'].includes(section.key) && (
+                  <button
+                    className="button secondary"
+                    type="button"
+                    onClick={() => handleGenerateSection(section.key, section.label)}
+                    disabled={busy || !sections[section.key].trim()}
+                    style={{ fontSize: '0.8em', padding: '0.25em 0.5em' }}
+                  >
+                    Test Section
+                  </button>
+                )}
+              </div>
               <textarea
                 value={sections[section.key]}
                 onChange={(event) => updateSection(section.key, event.target.value)}
                 placeholder={section.placeholder}
                 rows={section.key === 'user_input' ? 5 : 6}
               />
-            </label>
+            </div>
           ))}
         </section>
 

@@ -15,6 +15,7 @@ from .schemas import (
     PromptAssemblyResponse,
     RetrieveRequest,
     RetrieveResponse,
+    SingleSectionGenerateRequest,
     UploadResponse,
 )
 
@@ -182,6 +183,126 @@ def generate_output(request: GenerateRequest) -> GenerateResponse:
         )
         output_text = response.output_text or "The model returned an empty response."
     except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=502, detail=f"Model API call failed: {exc}") from exc
+
+    return GenerateResponse(
+        prompt=prompt,
+        output_text=output_text,
+        model_used=model_name,
+    )
+
+
+@app.post("/generate/system-instructions", response_model=GenerateResponse)
+def generate_system_instructions(request: SingleSectionGenerateRequest) -> GenerateResponse:
+    prompt = f"System Instructions\n===================\n{request.content}"
+
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="OPENAI_API_KEY is not configured on the backend. Add it to backend/.env before generating.",
+        )
+
+    client = OpenAI(api_key=settings.openai_api_key)
+    model_name = request.model or settings.openai_model
+
+    try:
+        response = client.responses.create(
+            model=model_name,
+            input=prompt,
+            temperature=request.temperature,
+        )
+        output_text = response.output_text or "The model returned an empty response."
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Model API call failed: {exc}") from exc
+
+    return GenerateResponse(
+        prompt=prompt,
+        output_text=output_text,
+        model_used=model_name,
+    )
+
+
+@app.post("/generate/user-input", response_model=GenerateResponse)
+def generate_user_input(request: SingleSectionGenerateRequest) -> GenerateResponse:
+    prompt = f"Current User Input\n==================\n{request.content}"
+
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="OPENAI_API_KEY is not configured on the backend. Add it to backend/.env before generating.",
+        )
+
+    client = OpenAI(api_key=settings.openai_api_key)
+    model_name = request.model or settings.openai_model
+
+    try:
+        response = client.responses.create(
+            model=model_name,
+            input=prompt,
+            temperature=request.temperature,
+        )
+        output_text = response.output_text or "The model returned an empty response."
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Model API call failed: {exc}") from exc
+
+    return GenerateResponse(
+        prompt=prompt,
+        output_text=output_text,
+        model_used=model_name,
+    )
+
+
+@app.post("/generate/retrieved-knowledge", response_model=GenerateResponse)
+def generate_retrieved_knowledge(request: SingleSectionGenerateRequest) -> GenerateResponse:
+    prompt = f"Retrieved Knowledge\n===================\n{request.content}"
+
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="OPENAI_API_KEY is not configured on the backend. Add it to backend/.env before generating.",
+        )
+
+    client = OpenAI(api_key=settings.openai_api_key)
+    model_name = request.model or settings.openai_model
+
+    try:
+        response = client.responses.create(
+            model=model_name,
+            input=prompt,
+            temperature=request.temperature,
+        )
+        output_text = response.output_text or "The model returned an empty response."
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Model API call failed: {exc}") from exc
+
+    return GenerateResponse(
+        prompt=prompt,
+        output_text=output_text,
+        model_used=model_name,
+    )
+
+
+@app.post("/generate/state-and-memory", response_model=GenerateResponse)
+def generate_state_and_memory(request: SingleSectionGenerateRequest) -> GenerateResponse:
+    prompt = f"State & Memory\n==============\n{request.content}"
+
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="OPENAI_API_KEY is not configured on the backend. Add it to backend/.env before generating.",
+        )
+
+    client = OpenAI(api_key=settings.openai_api_key)
+    model_name = request.model or settings.openai_model
+
+    try:
+        response = client.responses.create(
+            model=model_name,
+            input=prompt,
+            temperature=request.temperature,
+        )
+        output_text = response.output_text or "The model returned an empty response."
+    except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Model API call failed: {exc}") from exc
 
     return GenerateResponse(

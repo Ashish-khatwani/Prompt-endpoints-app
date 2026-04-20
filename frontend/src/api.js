@@ -52,3 +52,35 @@ export function generateResponse(body) {
     body: JSON.stringify(body),
   });
 }
+
+export function generateSystemInstructions(body) {
+  return request('/generate/system-instructions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export function generateUserInput(body) {
+  return request('/generate/user-input', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export function generateRetrievedKnowledge(body) {
+  return request('/generate/retrieved-knowledge', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export function generateStateAndMemory(body) {
+  return request('/generate/state-and-memory', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
